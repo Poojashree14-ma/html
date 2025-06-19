@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tic-Tac-Toe Ultimate</title>
+<style>
+  /* Reset and base */
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  #app {
+    width: 100%;
+    max-width: 420px;
+    background: #1f1f2e;
+    border-radius: 18px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+    overflow: hidden;
+    padding: 15px 20px 30px;
+  }
+  h1 {
+    text-align: center;
+    margin: 15px 0 5px;
+    font-weight: 700;
+    letter-spacing: 2px;
+  }
+  /* Common Buttons */
+  button {
+    cursor: pointer;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    background: #4b6cb7;
+    background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%);
+    color: white;
+    box-shadow: 0 4px 8px rgba(75,108,183,0.4);
+    transition: background 0.3s ease;
+  }
+  button:hover:not(:disabled) {
+    background: linear-gradient(135deg, #5a7cca 0%, #24306d 100%);
+  }
+  button:disabled {
+    background: #555a7b;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  /* Continue Playing Button */
+  #continueBtn {
+    margin-top: 10px;
+    width: 100%;
+    font-size: 1.1rem;
+    padding: 12px 0;
+    border-radius: 12px;
+    background: #28a745;
+    box-shadow: 0 4px 10px rgba(40, 167, 69, 0.6);
+    transition: background 0.3s ease;
+  }
+  #continueBtn:hover {
+    background: #218838;
+  }
+
+  /* Sections */
+  .hidden { display: none !important; }
+  .centered {
+    text-align: center;
+  }
+  .symbol-select {
+    display: flex; justify-content: center; gap: 30px; margin: 20px 0;
+  }
+  .symbol-select button {
+    width: 80px; height: 80px;
+    font-size: 2.8rem;
+    line-height: 1;
+    font-weight: 900;
+    user-select: none;
+  }
+  .symbol-select button.selected {
+    box-shadow: 0 0 15px 3px #fff;
+    transform: scale(1.1);
+  }
+
+  /* Board */
+  #board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 15px 0 25px;
+  }
+  .cell {
+    width: 100px; height: 100px;
+    background: #282943;
+    border-radius: 14px;
+    font-size: 3.2rem;
+    display: flex; justify-content: center; align-items: center;
+    user-select: none;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    box-shadow: inset 0 0 8px #0008;
+  }
+  .cell:hover {
+    background: #41476a;
+  }
+  .cell.disabled {
+    cursor: default;
+    background: #1b1b29;
+  }
+
+  /* Status and scores */
+  #status {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+    min-height: 30px;
+    text-align: center;
+  }
+  #scoreboard {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+  #scoreboard div {
+    background: #323354;
+    border-radius: 10px;
+    padding: 8px 20px;
+    flex: 1;
+    margin: 0 5px;
+  }
+
+  /* Controls */
+  #controls {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+
+  /* Modal */
+  #termsModal {
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 20, 40, 0.95);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+  }
+  #termsModalContent {
+    background: #22243a;
+    max-width: 360px;
+    padding: 25px 20px 15px;
+    border-radius: 15px;
+    color: #ccc;
+    font-size: 0.9rem;
+    overflow-y: auto;
+    max-height: 70vh;
+  }
+  #termsModalContent h2 {
+    color: #fff;
+    margin-top: 0;
+  }
+  #termsModalContent p {
+    line-height: 1.4;
+    margin-bottom: 10px;
+  }
+  #termsModalContent button {
+    margin-top: 15px;
+    width: 100%;
+    font-size: 1rem;
+  }
+
+  /* History list */
+  #history {
+    margin-top: 25px;
+    background: #323354;
+    padding: 10px 15px;
+    border-radius: 14px;
+    max-height: 150px;
+    overflow-y: auto;
+    font-size: 0.9rem;
+  }
+  #history h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #aaa;
+  }
+  #history ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  #history li {
+    padding: 6px 4px;
+    border-bottom: 1px solid #4b4f7b;
+    word-break: break-word;
+  }
+
+  /* Responsive */
+  @media (max-width: 400px) {
+    #board {
+      grid-template-columns: repeat(3, 80px);
+      gap: 8px;
+    }
+    .cell {
+      width: 80px; height: 80px;
+      font-size: 2.4rem;
+    }
+  }
+</style>
+</head>
+<body>
+  <div id="app">
+    <!-- Home / Symbol Selection Screen -->
+    <section id="homeScreen">
+      <h1>Tic-Tac-Toe Ultimate</h1>
+      <p class="centered">Select your symbol:</p>
+      <div class="symbol-select">
+        <button id="chooseX" aria-label="Select X symbol">X</button>
+        <button id="chooseO" aria-label="Select O symbol">O</button>
+      </div>
+      <div class="centered">
+        <button id="startGameBtn" disabled>Start Game</button>
+      </div>
+      <p style="margin-top: 20px; font-size: 0.85rem; color: #aaa;">
+        Please accept the <a href="#" id="showTermsLink" style="color:#9bb0ff; text-decoration:none;">Terms & Conditions</a> to play.
+      </p>
+    </section>
+
+    <!-- Game Screen -->
+    <section id="gameScreen" class="hidden">
+      <h1>Tic-Tac-Toe</h1>
+      <div id="scoreboard">
+        <div>Player (<span id="playerSymbolDisplay"></span>): <span id="playerScore">0</span></div>
+        <div>Computer (<span id="computerSymbolDisplay"></span>): <span id="computerScore">0</span></div>
+      </div>
+      <div id="status" role="status" aria-live="polite" aria-atomic="true">Your turn</div>
+      <button id="continueBtn" class="hidden">Continue Playing</button>
+      <div id="board" role="grid" aria-label="Tic Tac Toe board"></div>
+      <div id="controls">
+        <button id="restartBtn">Restart</button>
+        <button id="homeBtn">Home</button>
+      </div>
+      <div id="history" aria-live="polite" aria-atomic="true" aria-relevant="additions">
+        <h3>Game History</h3>
+        <ul id="historyList"></ul>
+      </div>
+    </section>
+
+    <!-- Terms & Conditions Modal -->
+    <div id="termsModal" aria-modal="true" role="dialog" aria-labelledby="termsTitle">
+      <div id="termsModalContent">
+        <h2 id="termsTitle">Terms & Conditions</h2>
+        <p>Welcome to Tic-Tac-Toe Ultimate! By playing this game, you agree to the following:</p>
+        <ul>
+          <li>This is a free game for entertainment purposes.</li>
+          <li>Your gameplay data is stored locally only for history and scores.</li>
+          <li>Sounds and animations can be muted in your device settings.</li>
+          <li>Enjoy and have fun!</li>
+        </ul>
+        <button id="acceptTermsBtn">Accept & Continue</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // Elements
+  const homeScreen = document.getElementById('homeScreen');
+  const gameScreen = document.getElementById('gameScreen');
+  const chooseX = document.getElementById('chooseX');
+  const chooseO = document.getElementById('chooseO');
+  const startGameBtn = document.getElementById('startGameBtn');
+  const boardEl = document.getElementById('board');
+  const statusEl = document.getElementById('status');
+  const playerScoreEl = document.getElementById('playerScore');
+  const computerScoreEl = document.getElementById('computerScore');
+  const playerSymbolDisplay = document.getElementById('playerSymbolDisplay');
+  const computerSymbolDisplay = document.getElementById('computerSymbolDisplay');
+  const restartBtn = document.getElementById('restartBtn');
+  const homeBtn = document.getElementById('homeBtn');
+  const continueBtn = document.getElementById('continueBtn');
+  const historyList = document.getElementById('historyList');
+  const termsModal = document.getElementById('termsModal');
+  const acceptTermsBtn = document.getElementById('acceptTermsBtn');
+  const showTermsLink = document.getElementById('showTermsLink');
+
+  // Game state
+  let playerSymbol = null;
+  let computerSymbol = null;
+  let isPlayerTurn = true;
+  let board = ["", "", "", "", "", "", "", "", ""];
+  let isGameActive = false;
+  let playerScore = 0;
+  let computerScore = 0;
+  let movesLog = []; // history for moves
+
+  // Winning combinations
+  const winningConditions = [
+    [0,1,2],[3,4,5],[6,7,8], // rows
+    [0,3,6],[1,4,7],[2,5,8], // cols
+    [0,4,8],[2,4,6]          // diagonals
+  ];
+
+  // Sounds
+  const winSound = new Audio('https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg');
+  const drawSound = new Audio('https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg');
+  const clickSound = new Audio('https://actions.google.com/sounds/v1/ui/click.ogg');
+
+  // Enable symbol selection
+  chooseX.onclick = () => {
+    playerSymbol = "X";
+    computerSymbol = "O";
+    chooseX.classList.add('selected');
+    chooseO.classList.remove('selected');
+    startGameBtn.disabled = false;
+  };
+  chooseO.onclick = () => {
+    playerSymbol = "O";
+    computerSymbol = "X";
+    chooseO.classList.add('selected');
+    chooseX.classList.remove('selected');
+    startGameBtn.disabled = false;
+  };
+
+  // Accept Terms and show symbol selection
+  acceptTermsBtn.onclick = () => {
+    termsModal.classList.add('hidden');
+  };
+  showTermsLink.onclick = (e) => {
+    e.preventDefault();
+    termsModal.classList.remove('hidden');
+  };
+
+  // Start game
+  startGameBtn.onclick = () => {
+    homeScreen.classList.add('hidden');
+    gameScreen.classList.remove('hidden');
+    initializeGame();
+  };
+
+  // Initialize / Reset game state
+  function initializeGame() {
+    board = ["", "", "", "", "", "", "", "", ""];
+    isGameActive = true;
+    isPlayerTurn = true;
+    statusEl.textContent = "Your turn";
+    continueBtn.classList.add('hidden');
+    movesLog = [];
+    updateScores();
+    renderBoard();
+    playerSymbolDisplay.textContent = playerSymbol;
+    computerSymbolDisplay.textContent = computerSymbol;
+  }
+
+  // Render board cells
+  function renderBoard() {
+    boardEl.innerHTML = "";
+    for (let i = 0; i < 9; i++) {
+      const cell = document.createElement('div');
+      cell.classList.add('cell');
+      cell.setAttribute('role', 'gridcell');
+      cell.setAttribute('aria-label', `Cell ${i+1}`);
+      cell.setAttribute('data-index', i);
+      cell.tabIndex = 0;
+      cell.textContent = board[i];
+      if (!isGameActive || board[i] !== "") {
+        cell.classList.add('disabled');
+      }
+      cell.onclick = () => handleCellClick(i);
+      cell.onkeydown = (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleCellClick(i);
+        }
+      };
+      boardEl.appendChild(cell);
+    }
+  }
+
+  // Handle player move
+  function handleCellClick(index) {
+    if (!isGameActive) return;
+    if (board[index] !== "") return;
+
+    clickSound.play();
+    board[index] = playerSymbol;
+    movesLog.push(`Player: ${playerSymbol} at cell ${index + 1}`);
+    renderBoard();
+
+    if (checkWin(playerSymbol)) {
+      endGame("You Win!");
+      return;
+    }
+
+    if (isBoardFull()) {
+      endGame("Draw!");
+      return;
+    }
+
+    isPlayerTurn = false;
+    statusEl.textContent = "Computer's turn";
+    setTimeout(computerMove, 700);
+  }
+
+  // Computer AI move (simple random choice)
+  function computerMove() {
+    if (!isGameActive) return;
+    let available = [];
+    board.forEach((cell, idx) => {
+      if (cell === "") available.push(idx);
+    });
+    if (available.length === 0) return;
+
+    let moveIndex = available[Math.floor(Math.random() * available.length)];
+    board[moveIndex] = computerSymbol;
+    movesLog.push(`Computer: ${computerSymbol} at cell ${moveIndex + 1}`);
+    renderBoard();
+
+    if (checkWin(computerSymbol)) {
+      endGame("Computer Wins!");
+      return;
+    }
+    if (isBoardFull()) {
+      endGame("Draw!");
+      return;
+    }
+
+    isPlayerTurn = true;
+    statusEl.textContent = "Your turn";
+  }
+
+  // Check if symbol has won
+  function checkWin(symbol) {
+    return winningConditions.some(comb => {
+      return comb.every(index => board[index] === symbol);
+    });
+  }
+
+  // Check if board is full
+  function isBoardFull() {
+    return board.every(cell => cell !== "");
+  }
+
+  // End the game
+  function endGame(message) {
+    isGameActive = false;
+    statusEl.textContent = message;
+    continueBtn.classList.remove('hidden'); // Show continue button
+
+    if (message.includes("Win")) {
+      if (message.includes("You")) playerScore++;
+      else computerScore++;
+      winSound.play();
+    } else {
+      drawSound.play();
+    }
+    updateScores();
+    saveGameRecord(message);
+  }
+
+  // Update scores on UI
+  function updateScores() {
+    playerScoreEl.textContent = playerScore;
+    computerScoreEl.textContent = computerScore;
+  }
+
+  // Reset board only for continue playing (keep scores)
+  function resetBoard() {
+    board = ["", "", "", "", "", "", "", "", ""];
+    renderBoard();
+  }
+
+  // Continue playing click handler
+  continueBtn.onclick = () => {
+    resetBoard();
+    isGameActive = true;
+    statusEl.textContent = "Your turn";
+    continueBtn.classList.add('hidden');
+    movesLog = [];
+  };
+
+  // Restart entire game (scores reset)
+  restartBtn.onclick = () => {
+    playerScore = 0;
+    computerScore = 0;
+    initializeGame();
+  };
+
+  // Go back to home (symbol select)
+  homeBtn.onclick = () => {
+    gameScreen.classList.add('hidden');
+    homeScreen.classList.remove('hidden');
+    // Reset everything
+    playerSymbol = null;
+    computerSymbol = null;
+    isGameActive = false;
+    movesLog = [];
+    startGameBtn.disabled = true;
+    chooseX.classList.remove('selected');
+    chooseO.classList.remove('selected');
+  };
+
+  // Save game record in history
+  function saveGameRecord(result) {
+    let date = new Date().toLocaleTimeString();
+    let entry = document.createElement('li');
+    entry.textContent = `[${date}] ${result} - Moves: ${movesLog.join(', ')}`;
+    historyList.prepend(entry);
+    // Limit history size
+    while (historyList.childElementCount > 8) {
+      historyList.removeChild(historyList.lastChild);
+    }
+  }
+
+  // Show terms modal initially (require acceptance)
+  window.onload = () => {
+    termsModal.classList.remove('hidden');
+  };
+</script>
+</body>
+</html>
